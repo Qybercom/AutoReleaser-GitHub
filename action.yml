@@ -1,5 +1,9 @@
 name: 'AutoReleaser'
+author: 'Alexandru Furnica'
 description: 'Automatically create release by selected platform'
+branding:
+  icon: package
+  color: green
 inputs:
   platform:
     description: 'Target platform (labeled|branched|filed|npm|composer|e.t.c.)'
