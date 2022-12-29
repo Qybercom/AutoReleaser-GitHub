@@ -32,7 +32,7 @@ runs:
     - name: '[NPM] Get next release version'
       id: versionNextNPM
       uses: ./platforms/npm/versionNext.yml
-      if: ${{ inputs.target == "npm" }}
+      if: ${{ inputs.target == 'npm' }}
 
     - name: Print release versions
       shell: bash
@@ -75,4 +75,4 @@ runs:
     - name: '[NPM] Publish to platform registry'
       id: publishNPM
       uses: ./platforms/npm/publish.yml
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.target == "npm" }}
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.target == 'npm' }}
