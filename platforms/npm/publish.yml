@@ -1,0 +1,7 @@
+name: '[NPM:Publish]'
+description: 'Publish new release to NPM registry'
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: echo "Placeholder for publishing"

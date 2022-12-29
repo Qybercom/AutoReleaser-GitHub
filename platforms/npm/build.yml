@@ -1,0 +1,23 @@
+name: '[NPM:Build]'
+description: 'Build next release'
+inputs:
+  nodeJSversion:
+    description: 'NodeJS version'
+    default: '12.0'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout current release code
+      uses: actions/checkout@master
+
+    - name: Use NodeJS ${{ inputs.nodeJSversion }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ inputs.nodeJSversion }}
+
+    - name: npm run build
+      run: |
+        npm install
+        npm run build
+        npm test
+        cp -a ./dist/. ${{ env.AUTORELEASER_DIST }}

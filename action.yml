@@ -1,0 +1,74 @@
+name: 'AutoReleaser'
+description: 'Automatically create release by selected platform'
+inputs:
+  platform:
+    description: 'Target platform (labeled|branched|filed|npm|composer|e.t.c.)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Init
+      shell: bash
+      run: |
+        echo "AUTORELEASER_VERSION_NEXT=0.0.0" >> $GITHUB_ENV
+        mkdir /autoreleaser && mkdir /autoreleaser/dist
+        echo "AUTORELEASER_DIST=/autoreleaser/dist" >> $GITHUB_ENV
+
+    # https://github.com/marketplace/actions/get-latest-release
+    - name: Get current release version
+      id: versionCurrent
+      uses: pozetroninc/github-action-get-latest-release@master
+      with:
+        repository: ${{ github.repository }}
+        excludes: prerelease, draft
+
+    - name: Checkout current release code
+      uses: actions/checkout@master
+
+    - name: '[NPM] Get next release version'
+      id: versionNextNPM
+      uses: ./platforms/npm/versionNext.yml
+      if: ${{ inputs.target == "npm" }}
+
+    - name: Print release versions
+      shell: bash
+      run: echo "Version ${{ steps.releaseVersionCurrent.outputs.release }} -> ${{ env.AUTORELEASER_VERSION_NEXT }}"
+
+    - name: No new version
+      if: ${{ steps.releaseVersionCurrent.outputs.release == env.AUTORELEASER_VERSION_NEXT }}
+      shell: bash
+      run: echo "Versions are same, stop creating release"
+
+    # https://www.youtube.com/watch?v=_ueJ3LrRqPU&ab_channel=MicrosoftDevRadio
+    - name: Create next release archive
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
+      uses: thedoctor0/zip-release@master
+      with:
+        directory: ${{ env.AUTORELEASER_DIST }}
+        filename: release.zip
+
+    - name: Create next release
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
+      id: releaseCreate
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.AUTORELEASER_VERSION_NEXT }}
+        release_name: Release ${{ env.AUTORELEASER_VERSION_NEXT }}
+
+    - name: Upload release artifacts
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.releaseCreate.outputs.upload_url }}
+        asset_path: ./release.zip
+        asset_name: ${{ github.event.repository.name }}-${{ steps.releaseVersionNext.outputs.version }}.zip
+        asset_content_type: application/zip
+
+    - name: '[NPM] Publish to platform registry'
+      id: publishNPM
+      uses: ./platforms/npm/publish.yml
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.target == "npm" }}

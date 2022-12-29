@@ -1,0 +1,12 @@
+name: '[NPM:VersionNext]'
+description: 'Get next release version by package.json version'
+runs:
+  using: 'composite'
+  steps:
+    # https://github.com/marketplace/actions/extract-package-version
+    - name: Get next release version
+      id: releaseVersionNext
+      uses: Saionaro/extract-package-version@v1.0.6
+
+    - name: Export next version to ENV
+      run: echo "AUTORELEASER_VERSION_NEXT=${{ steps.releaseVersionNext.outputs.version }}" >> $GITHUB_ENV
