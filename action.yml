@@ -11,6 +11,9 @@ inputs:
   github_token:
     description: 'GitHub secret from secrets.GITHUB_TOKEN'
     required: true
+  nodeJSVersion:
+    description: 'NodeJS version'
+    default: '16.0'
 runs:
   using: 'composite'
   steps:
@@ -32,10 +35,18 @@ runs:
     - name: Checkout current release code
       uses: actions/checkout@master
 
+
+    # https://github.com/marketplace/actions/extract-package-version
     - name: '[NPM] Get next release version'
       id: versionNextNPM
-      uses: ./platforms/npm/versionNext
       if: ${{ inputs.platform == 'npm' }}
+      uses: Saionaro/extract-package-version@v1.0.6
+
+    - name: Export next version to ENV
+      if: ${{ inputs.platform == 'npm' }}
+      shell: bash
+      run: echo "AUTORELEASER_VERSION_NEXT=${{ steps.versionNextNPM.outputs.version }}" >> $GITHUB_ENV
+
 
     - name: Print release versions
       shell: bash
@@ -46,10 +57,27 @@ runs:
       shell: bash
       run: echo "Versions are same, stop creating release"
 
-    - name: '[NPM] Build'
+
+    - name: '[NPM] Build: Checkout current release code'
       id: buildNPM
-      uses: ./platforms/npm/build
       if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      uses: actions/checkout@master
+
+    - name: '[NPM] Build: Use NodeJS ${{ inputs.nodeJSVersion }}'
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ inputs.nodeJSVersion }}
+
+    - name: '[NPM] Build: npm run build'
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      shell: bash
+      run: |
+        npm install
+        npm run build
+        npm test
+        cp -a ./dist/. ${{ env.AUTORELEASER_DIST }}
+
 
     # https://www.youtube.com/watch?v=_ueJ3LrRqPU&ab_channel=MicrosoftDevRadio
     - name: Create next release archive
@@ -80,7 +108,9 @@ runs:
         asset_name: ${{ github.event.repository.name }}-${{ steps.releaseVersionNext.outputs.version }}.zip
         asset_content_type: application/zip
 
+
     - name: '[NPM] Publish to platform registry'
       id: publishNPM
-      uses: ./platforms/npm/publish
       if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      shell: bash
+      run: echo "Placeholder for publishing"
