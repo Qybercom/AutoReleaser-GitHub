@@ -10,3 +10,4 @@ jobs:
         uses: Qybercom/AutoReleaser-GitHub@master
         with:
           platform: 'npm'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
