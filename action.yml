@@ -18,8 +18,8 @@ runs:
       shell: bash
       run: |
         echo "AUTORELEASER_VERSION_NEXT=0.0.0" >> $GITHUB_ENV
-        mkdir /autoreleaser && mkdir /autoreleaser/dist
-        echo "AUTORELEASER_DIST=/autoreleaser/dist" >> $GITHUB_ENV
+        mkdir ../autoreleaser && mkdir ../autoreleaser/dist
+        echo "AUTORELEASER_DIST=../autoreleaser/dist" >> $GITHUB_ENV
 
     # https://github.com/marketplace/actions/get-latest-release
     - name: Get current release version
