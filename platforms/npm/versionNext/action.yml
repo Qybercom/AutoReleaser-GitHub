@@ -9,4 +9,5 @@ runs:
       uses: Saionaro/extract-package-version@v1.0.6
 
     - name: Export next version to ENV
+      shell: bash
       run: echo "AUTORELEASER_VERSION_NEXT=${{ steps.releaseVersionNext.outputs.version }}" >> $GITHUB_ENV

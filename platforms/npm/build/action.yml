@@ -16,6 +16,7 @@ runs:
         node-version: ${{ inputs.nodeJSversion }}
 
     - name: npm run build
+      shell: bash
       run: |
         npm install
         npm run build

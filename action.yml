@@ -34,7 +34,7 @@ runs:
 
     - name: '[NPM] Get next release version'
       id: versionNextNPM
-      uses: ./platforms/npm/versionNext.yml
+      uses: ./platforms/npm/versionNext
       if: ${{ inputs.platform == 'npm' }}
 
     - name: Print release versions
@@ -45,6 +45,11 @@ runs:
       if: ${{ steps.releaseVersionCurrent.outputs.release == env.AUTORELEASER_VERSION_NEXT }}
       shell: bash
       run: echo "Versions are same, stop creating release"
+
+    - name: '[NPM] Build'
+      id: buildNPM
+      uses: ./platforms/npm/build
+      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
 
     # https://www.youtube.com/watch?v=_ueJ3LrRqPU&ab_channel=MicrosoftDevRadio
     - name: Create next release archive
@@ -77,5 +82,5 @@ runs:
 
     - name: '[NPM] Publish to platform registry'
       id: publishNPM
-      uses: ./platforms/npm/publish.yml
+      uses: ./platforms/npm/publish
       if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
