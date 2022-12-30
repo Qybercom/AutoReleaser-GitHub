@@ -53,24 +53,24 @@ runs:
       run: echo "Version ${{ steps.releaseVersionCurrent.outputs.release }} -> ${{ env.AUTORELEASER_VERSION_NEXT }}"
 
     - name: No new version
-      if: ${{ steps.releaseVersionCurrent.outputs.release == env.AUTORELEASER_VERSION_NEXT }}
+      if: ${{ steps.versionCurrent.outputs.release == env.AUTORELEASER_VERSION_NEXT }}
       shell: bash
       run: echo "Versions are same, stop creating release"
 
 
     - name: '[NPM] Build: Checkout current release code'
       id: buildNPM
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
       uses: actions/checkout@master
 
     - name: '[NPM] Build: Use NodeJS ${{ inputs.nodeJSVersion }}'
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ inputs.nodeJSVersion }}
 
     - name: '[NPM] Build: npm run build'
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
       shell: bash
       run: |
         npm install
@@ -81,14 +81,14 @@ runs:
 
     # https://www.youtube.com/watch?v=_ueJ3LrRqPU&ab_channel=MicrosoftDevRadio
     - name: Create next release archive
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
       uses: thedoctor0/zip-release@master
       with:
         directory: ${{ env.AUTORELEASER_DIST }}
         filename: release.zip
 
     - name: Create next release
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
       id: releaseCreate
       uses: actions/create-release@v1
       env:
@@ -98,19 +98,19 @@ runs:
         release_name: Release ${{ env.AUTORELEASER_VERSION_NEXT }}
 
     - name: Upload release artifacts
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
         upload_url: ${{ steps.releaseCreate.outputs.upload_url }}
-        asset_path: ./release.zip
+        asset_path: ${{ env.AUTORELEASER_DIST }}/release.zip
         asset_name: ${{ github.event.repository.name }}-${{ steps.releaseVersionNext.outputs.version }}.zip
         asset_content_type: application/zip
 
 
     - name: '[NPM] Publish to platform registry'
       id: publishNPM
-      if: ${{ steps.releaseVersionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
+      if: ${{ steps.versionCurrent.outputs.release != env.AUTORELEASER_VERSION_NEXT && inputs.platform == 'npm' }}
       shell: bash
       run: echo "Placeholder for publishing"
