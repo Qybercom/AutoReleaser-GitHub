@@ -50,7 +50,7 @@ runs:
 
     - name: Print release versions
       shell: bash
-      run: echo "Version ${{ steps.releaseVersionCurrent.outputs.release }} -> ${{ env.AUTORELEASER_VERSION_NEXT }}"
+      run: echo "Version ${{ steps.versionCurrent.outputs.release }} -> ${{ env.AUTORELEASER_VERSION_NEXT }}"
 
     - name: No new version
       if: ${{ steps.versionCurrent.outputs.release == env.AUTORELEASER_VERSION_NEXT }}
@@ -105,7 +105,7 @@ runs:
       with:
         upload_url: ${{ steps.releaseCreate.outputs.upload_url }}
         asset_path: ${{ env.AUTORELEASER_DIST }}/release.zip
-        asset_name: ${{ github.event.repository.name }}-${{ steps.releaseVersionNext.outputs.version }}.zip
+        asset_name: ${{ github.event.repository.name }}-${{ steps.versionNext.outputs.version }}.zip
         asset_content_type: application/zip
 
 
